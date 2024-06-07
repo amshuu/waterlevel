@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Water Level Management Nodes</title>
+    <style>
+        .node-box {
+            border: 1px solid #ccc;
+            padding: 16px;
+            margin: 16px;
+            border-radius: 8px;
+            position: relative;
+        }
+
+        .node-box.active {
+            background-color: #e0ffe0;
+        }
+
+        .node-box.inactive {
+            background-color: #ffe0e0;
+        }
+
+        .edit-button,
+        .delete-button {
+            margin-right: 5px;
+        }
+
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1;
+            padding-top: 60px;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.4);
+        }
+
+        .modal-content {
+            background-color: #fff;
+            margin: 5% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%;
+        }
+
+        .modal-header, .modal-body, .modal-footer {
+            padding: 10px;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #eee;
+        }
+
+        .close {
+            color: #aaa;
+            font-size: 28px;
+            font-weight: bold;
+        }
+
+        .close:hover,
+        .close:focus {
+            color: #000;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        /* View Details Styles */
+        .details-container {
+            display: flex;
+        }
+
+        .details-graph, .details-info {
+            flex: 1;
+            padding: 10px;
+        }
+
+        .details-info p {
+            margin: 5px 0;
+        }
+
+        .details-info h3 {
+            margin-top: 0;
+        }
+    </style>
+</head>
+<body>
+    <div id="nodes-container"></div>
+
+    <button id="add-node-button">Add Node</button>
+
+    <!-- Add Node Modal -->
+    <div id="add-node-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <span class="close" onclick="closeModal()">&times;</span>
+                <h2>Add Node</h2>
+            </div>
+            <div class="modal-body">
+                <label for="node-name">Name:</label>
+                <input type="text" id="node-name"><br>
+                <label for="node-location">Location:</label>
+                <input type="text" id="node-location"><br>
+                <label for="node-channel-id">Channel ID:</label>
+                <input type="text" id="node-channel-id"><br>
+                <label for="node-api-key">Write API Key:</label>
+                <input type="text" id="node-api-key"><br>
+                <label for="node-read-api-key">Read API Key:</label>
+                <input type="text" id="node-read-api-key"><br>
+                <label for="node-graph-link">Graph Link:</label>
+                <input type="text" id="node-graph-link"><br>
+            </div>
+            <div class="modal-footer">
+                <button id="save-node-button">Save Node</button>
+                <button class="close" onclick="closeModal()">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Node Modal -->
+    <div id="edit-node-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <span class="close" onclick="closeModal()">&times;</span>
+                <h2>Edit Node</h2>
+            </div>
+            <div class="modal-body">
+                <label for="edit-node-name">Name:</label>
+                <input type="text" id="edit-node-name"><br>
+                <label for="edit-node-location">Location:</label>
+                <input type="text" id="edit-node-location"><br>
+                <label for="edit-node-channel-id">Channel ID:</label>
+                <input type="text" id="edit-node-channel-id"><br>
+                <label for="edit-node-api-key">Write API Key:</label>
+                <input type="text" id="edit-node-api-key"><br>
+                <label for="edit-node-read-api-key">Read API Key:</label>
+                <input type="text" id="edit-node-read-api-key"><br>
+                <label for="edit-node-graph-link">Graph Link:</label>
+                <input type="text" id="edit-node-graph-link"><br>
+            </div>
+            <div class="modal-footer">
+                <button id="update-node-button">Update Node</button>
+                <button class="close" onclick="closeModal()">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- View Details Modal -->
+    <div id="view-details-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <span class="close" onclick="closeModal()">&times;</span>
+                <h2>Node Details</h2>
+            </div>
+            <div class="modal-body details-container">
+                <div class="details-graph">
+                    <iframe id="details-graph-frame" src="" width="100%" height="300" frameborder="0"></iframe>
+                </div>
+                <div class="details-info">
+                    <h3>Node Information</h3>
+                    <p><strong>Name:</strong> <span id="details-name"></span></p>
+                    <p><strong>Location:</strong> <span id="details-location"></span></p>
+                    <p><strong>Status:</strong> <span id="details-status"></span></p>
+                    <p><strong>Last Reading:</strong> <span id="details-last-reading"></span></p>
+                    <p><strong>Last Value:</strong> <span id="details-last-value"></span></p>
+                    <p><strong>Channel ID:</strong> <span id="details-channel-id"></span></p>
+                    <p><strong>Write API Key:</strong> <span id="details-write-api-key"></span></p>
+                    <p><strong>Read API Key:</strong> <span id="details-read-api-key"></span></p>
+                    <p><strong>Graph Link:</strong> <a href="" id="details-graph-link" target="_blank">Open Graph</a></p>
+                    <!-- Optional fields -->
+                    <p><strong>Length:</strong> <span id="details-length"></span></p>
+                    <p><strong>Breadth:</strong> <span id="details-breadth"></span></p>
+                    <p><strong>Depth:</strong> <span id="details-depth"></span></p>
+                    <p><strong>Radius:</strong> <span id="details-radius"></span></p>
+                    <p><strong>Volume:</strong> <span id="details-volume"></span></p>
+                    <p><strong>QR Details:</strong> <span id="details-qr-details"></span></p>
+                    <p><strong>WiFi Name:</strong> <span id="details-wifi-name"></span></p>
+                    <p><strong>Password:</strong> <span id="details-password"></span></p>
+                    <p><strong>Mode:</strong> <span id="details-mode"></span></p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="close" onclick="closeModal()">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
