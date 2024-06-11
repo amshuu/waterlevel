@@ -91,6 +91,19 @@ document.addEventListener('DOMContentLoaded', function () {
         const writeApiKey = document.getElementById('node-api-key').value;
         const readApiKey = document.getElementById('node-read-api-key').value;
         const graphLink = document.getElementById('node-graph-link').value;
+        const length = document.getElementById('node-length').value;
+        const breadth = document.getElementById('node-breadth').value;
+        const depth = document.getElementById('node-depth').value;
+        const radius = document.getElementById('node-radius').value;
+        const volume = document.getElementById('node-volume').value;
+        const qr-details = document.getElementById('node-qr-details').value;
+        const wifi-name = document.getElementById('node-wifi-name').value;
+        const password = document.getElementById('node-password').value;
+        const mode = document.getElementById('node-mode').value;
+
+        
+        
+        
 
         if (!name || !location || !channelId || !writeApiKey || !readApiKey || !graphLink) {
             alert('Please fill in all required fields.');
@@ -127,7 +140,17 @@ document.addEventListener('DOMContentLoaded', function () {
         document.getElementById('edit-node-api-key').value = node.writeApiKey;
         document.getElementById('edit-node-read-api-key').value = node.readApiKey;
         document.getElementById('edit-node-graph-link').value = node.graphLink;
+        document.getElementById('edit-node-length').value = node.length;
+        document.getElementById('edit-node-breadth').value = node.breadth;
+        document.getElementById('edit-node-depth').value = node.depth;
+        document.getElementById('edit-node-radius').value = node.radius;
+        document.getElementById('edit-node-volume').value = node.volume;
+        document.getElementById('edit-node-qr-details').value = node.qrDetails;
+        document.getElementById('edit-node-wifi-name').value = node.wifiName;
+        document.getElementById('edit-node-password').value = node.password;
+        document.getElementById('edit-node-mode').value = node.mode;
 
+        
         document.getElementById('edit-node-modal').style.display = 'block';
     }
 
@@ -138,7 +161,15 @@ document.addEventListener('DOMContentLoaded', function () {
         const writeApiKey = document.getElementById('edit-node-api-key').value;
         const readApiKey = document.getElementById('edit-node-read-api-key').value;
         const graphLink = document.getElementById('edit-node-graph-link').value;
-
+        const length = document.getElementById('edit-node-length').value;
+        const breadth = document.getElementById('edit-node-breadth').value;
+        const depth = document.getElementById('edit-node-depth').value;
+        const volume = document.getElementById('edit-node-volume').value;
+        const qrDetails = document.getElementById('edit-node-qrDetails').value;
+        const wifiName = document.getElementById('edit-node-wifiName').value;
+        const password = document.getElementById('edit-node-password').value;
+        const mode = document.getElementById('edit-node-mode').value;
+        
         if (!name || !location || !channelId || !writeApiKey || !readApiKey || !graphLink) {
             alert('Please fill in all required fields.');
             return;
@@ -157,7 +188,7 @@ document.addEventListener('DOMContentLoaded', function () {
             name, location, status, lastReading, lastValue, graphLink,
             channelId, writeApiKey, readApiKey,
             length: '', breadth: '', depth: '', radius: '', volume: '',
-            qrDetails: '', wifiName: '', password: '', mode: ''
+            qretails: '', wifiName: '', password: '', mode: ''
         };
         saveToLocalStorage();
         closeModal();
