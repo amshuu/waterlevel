@@ -1,42 +1,34 @@
-document.addEventListener('DOMContentLoaded', function () {
-    let nodes = JSON.parse(localStorage.getItem('nodes')) || [];
-    let editIndex = null;
+let nodes = [];
+let currentEditIndex = null;
 
+// Load nodes from localStorage
+window.onload = function() {
+    if (localStorage.getItem('nodes')) {
+        nodes = JSON.parse(localStorage.getItem('nodes'));
+    }
+    displayNodes();
+};
+
+// Function to display nodes
+function displayNodes() {
     const nodesContainer = document.getElementById('nodes-container');
+    nodesContainer.innerHTML = '';
+    nodes.forEach((node, index) => {
+        const nodeBox = document.createElement('div');
+        nodeBox.className = `node-box ${node.status.toLowerCase()}`;
+        nodeBox.innerHTML = `
+            <h3>${node.name}</h3>
+            <p>Location: ${node.location}</p>
+            <p>Status: ${node.status}</p>
+            <button class="edit-button" onclick="openEditModal(${index})">Edit</button>
+            <button class="delete-button" onclick="deleteNode(${index})">Delete</button>
+            <button class="view-button" onclick="openViewDetailsModal(${index})">View Details</button>
+        `;
+        nodesContainer.appendChild(nodeBox);
+    });
+}
 
-    function saveToLocalStorage() {
-        localStorage.setItem('nodes', JSON.stringify(nodes));
-    }
-
-    function renderNodes() {
-        nodesContainer.innerHTML = '';
-        nodes.forEach((node, index) => {
-            const nodeBox = document.createElement('div');
-            nodeBox.className = `node-box ${node.status.toLowerCase()}`;
-            nodeBox.innerHTML = `
-                <h2>${node.name}</h2>
-                <p><strong>Location:</strong> ${node.location}</p>
-                <p><strong>Status:</strong> ${node.status} ${node.status === 'Inactive' ? `(Inactive for ${calculateInactiveDuration(node.lastReading)})` : ''}</p>
-                <p><strong>Last Reading:</strong> ${new Date(node.lastReading).toLocaleString()}</p>
-                <p><strong>Last Value:</strong> ${node.lastValue}</p>
-                <button class="view-details-button" data-index="${index}">View Details</button>
-                <button class="edit-button" data-index="${index}">Edit</button>
-                <button class="delete-button" data-index="${index}">Delete</button>
-            `;
-            nodesContainer.appendChild(nodeBox);
-        });
-        document.querySelectorAll('.delete-button').forEach(button => {
-            button.addEventListener('click', deleteNode);
-        });
-        document.querySelectorAll('.edit-button').forEach(button => {
-            button.addEventListener('click', openEditModal);
-        });
-        document.querySelectorAll('.view-details-button').forEach(button => {
-            button.addEventListener('click', openDetailsModal);
-        });
-    }
-
-    function calculateInactiveDuration(lastReading) {
+function calculateInactiveDuration(lastReading) {
         const now = new Date();
         const lastReadingDate = new Date(lastReading);
         const diffInMilliseconds = now - lastReadingDate;
@@ -50,188 +42,118 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
-    function deleteNode(event) {
-        const nodeIndex = event.target.getAttribute('data-index');
-        nodes.splice(nodeIndex, 1);
-        saveToLocalStorage();
-        renderNodes();
-    }
+// Function to open the Add Node modal
+document.getElementById('add-node-button').onclick = function() {
+    document.getElementById('add-node-modal').style.display = 'block';
+};
 
-    function openModal() {
-        document.getElementById('add-node-modal').style.display = 'block';
-    }
+// Function to close the modal
+function closeModal() {
+    document.getElementById('add-node-modal').style.display = 'none';
+    document.getElementById('edit-node-modal').style.display = 'none';
+    document.getElementById('view-details-modal').style.display = 'none';
+}
 
-    function closeModal() {
-        document.getElementById('add-node-modal').style.display = 'none';
-        document.getElementById('edit-node-modal').style.display = 'none';
-        document.getElementById('view-details-modal').style.display = 'none';
-    }
+// Function to save a new node
+document.getElementById('save-node-button').onclick = function() {
+    const node = {
+        name: document.getElementById('node-name').value,
+        location: document.getElementById('node-location').value,
+        channelID: document.getElementById('node-channel-id').value,
+        writeAPIKey: document.getElementById('node-api-key').value,
+        readAPIKey: document.getElementById('node-read-api-key').value,
+        graphLink: document.getElementById('node-graph-link').value,
+        length: document.getElementById('node-length').value,
+        breadth: document.getElementById('node-breadth').value,
+        depth: document.getElementById('node-depth').value,
+        radius: document.getElementById('node-radius').value,
+        volume: document.getElementById('node-volume').value,
+        qrDetails: document.getElementById('node-qr-details').value,
+        wifiName: document.getElementById('node-wifi-name').value,
+        password: document.getElementById('node-password').value,
+        mode: document.getElementById('node-mode').value,
+        status: 'Inactive'
+    };
+    nodes.push(node);
+    localStorage.setItem('nodes', JSON.stringify(nodes));
+    closeModal();
+    displayNodes();
+};
 
-    async function fetchLastReading(channelId, apiKey) {
-        const apiUrl = `https://api.thingspeak.com/channels/${channelId}/fields/6/last.json?api_key=${apiKey}`;
-        try {
-            const response = await fetch(apiUrl);
-            const data = await response.json();
-            if (data.created_at && data.field6) {
-                return {
-                    lastReading: new Date(data.created_at),
-                    lastValue: data.field6
-                };
-            }
-        } catch (error) {
-            console.error('Error fetching last reading:', error);
-        }
-        return null;
-    }
+// Function to open the Edit Node modal
+function openEditModal(index) {
+    currentEditIndex = index;
+    const node = nodes[index];
+    document.getElementById('edit-node-name').value = node.name;
+    document.getElementById('edit-node-location').value = node.location;
+    document.getElementById('edit-node-channel-id').value = node.channelID;
+    document.getElementById('edit-node-api-key').value = node.writeAPIKey;
+    document.getElementById('edit-node-read-api-key').value = node.readAPIKey;
+    document.getElementById('edit-node-graph-link').value = node.graphLink;
+    document.getElementById('edit-node-length').value = node.length;
+    document.getElementById('edit-node-breadth').value = node.breadth;
+    document.getElementById('edit-node-depth').value = node.depth;
+    document.getElementById('edit-node-radius').value = node.radius;
+    document.getElementById('edit-node-volume').value = node.volume;
+    document.getElementById('edit-node-qr-details').value = node.qrDetails;
+    document.getElementById('edit-node-wifi-name').value = node.wifiName;
+    document.getElementById('edit-node-password').value = node.password;
+    document.getElementById('edit-node-mode').value = node.mode;
+    document.getElementById('edit-node-modal').style.display = 'block';
+}
 
-    async function saveNode() {
-        const name = document.getElementById('node-name').value;
-        const location = document.getElementById('node-location').value;
-        const channelId = document.getElementById('node-channel-id').value;
-        const writeApiKey = document.getElementById('node-api-key').value;
-        const readApiKey = document.getElementById('node-read-api-key').value;
-        const graphLink = document.getElementById('node-graph-link').value;
-        const length = document.getElementById('node-length').value;
-        const breadth = document.getElementById('node-breadth').value;
-        const depth = document.getElementById('node-depth').value;
-        const radius = document.getElementById('node-radius').value;
-        const volume = document.getElementById('node-volume').value;
-        const qr-details = document.getElementById('node-qr-details').value;
-        const wifi-name = document.getElementById('node-wifi-name').value;
-        const password = document.getElementById('node-password').value;
-        const mode = document.getElementById('node-mode').value;
+// Function to update a node
+document.getElementById('update-node-button').onclick = function() {
+    const node = nodes[currentEditIndex];
+    node.name = document.getElementById('edit-node-name').value;
+    node.location = document.getElementById('edit-node-location').value;
+    node.channelID = document.getElementById('edit-node-channel-id').value;
+    node.writeAPIKey = document.getElementById('edit-node-api-key').value;
+    node.readAPIKey = document.getElementById('edit-node-read-api-key').value;
+    node.graphLink = document.getElementById('edit-node-graph-link').value;
+    node.length = document.getElementById('edit-node-length').value;
+    node.breadth = document.getElementById('edit-node-breadth').value;
+    node.depth = document.getElementById('edit-node-depth').value;
+    node.radius = document.getElementById('edit-node-radius').value;
+    node.volume = document.getElementById('edit-node-volume').value;
+    node.qrDetails = document.getElementById('edit-node-qr-details').value;
+    node.wifiName = document.getElementById('edit-node-wifi-name').value;
+    node.password = document.getElementById('edit-node-password').value;
+    node.mode = document.getElementById('edit-node-mode').value;
+    localStorage.setItem('nodes', JSON.stringify(nodes));
+    closeModal();
+    displayNodes();
+};
 
-        
-        
-        
+// Function to delete a node
+function deleteNode(index) {
+    nodes.splice(index, 1);
+    localStorage.setItem('nodes', JSON.stringify(nodes));
+    displayNodes();
+}
 
-        if (!name || !location || !channelId || !writeApiKey || !readApiKey || !graphLink) {
-            alert('Please fill in all required fields.');
-            return;
-        }
+// Function to open the View Details modal
+function openViewDetailsModal(index) {
+    const node = nodes[index];
+    document.getElementById('details-name').innerText = node.name;
+    document.getElementById('details-location').innerText = node.location;
+    document.getElementById('details-status').innerText = node.status;
+    document.getElementById('details-last-reading').innerText = 'N/A'; // Placeholder for actual data
+    document.getElementById('details-last-value').innerText = 'N/A'; // Placeholder for actual data
+    document.getElementById('details-channel-id').innerText = node.channelID;
+    document.getElementById('details-write-api-key').innerText = node.writeAPIKey;
+    document.getElementById('details-read-api-key').innerText = node.readAPIKey;
+    document.getElementById('details-graph-link').href = node.graphLink;
+    document.getElementById('details-graph-frame').src = node.graphLink;
+    document.getElementById('details-length').innerText = node.length;
+    document.getElementById('details-breadth').innerText = node.breadth;
+    document.getElementById('details-depth').innerText = node.depth;
+    document.getElementById('details-radius').innerText = node.radius;
+    document.getElementById('details-volume').innerText = node.volume;
+    document.getElementById('details-qr-details').innerText = node.qrDetails;
+    document.getElementById('details-wifi-name').innerText = node.wifiName;
+    document.getElementById('details-password').innerText = node.password;
+    document.getElementById('details-mode').innerText = node.mode;
+    document.getElementById('view-details-modal').style.display = 'block';
+}
 
-        const { lastReading, lastValue } = await fetchLastReading(channelId, readApiKey);
-        if (!lastReading) {
-            alert('Could not fetch the last reading. Please check the channel ID and API keys.');
-            return;
-        }
-
-        const now = new Date();
-        const status = (now - lastReading) / (1000 * 60 * 60) > 24 ? 'Inactive' : 'Active';
-
-        nodes.push({
-            name, location, status, lastReading, lastValue, graphLink,channelId, writeApiKey, readApiKey,length, breadth, depth, radius, volume,qrDetails, wifiName, password, mode
-        });
-        saveToLocalStorage();
-        closeModal();
-        renderNodes();
-    }
-
-    function openEditModal(event) {
-        editIndex = event.target.getAttribute('data-index');
-        const node = nodes[editIndex];
-
-        document.getElementById('edit-node-name').value = node.name;
-        document.getElementById('edit-node-location').value = node.location;
-        document.getElementById('edit-node-channel-id').value = node.channelId;
-        document.getElementById('edit-node-api-key').value = node.writeApiKey;
-        document.getElementById('edit-node-read-api-key').value = node.readApiKey;
-        document.getElementById('edit-node-graph-link').value = node.graphLink;
-        document.getElementById('edit-node-length').value = node.length;
-        document.getElementById('edit-node-breadth').value = node.breadth;
-        document.getElementById('edit-node-depth').value = node.depth;
-        document.getElementById('edit-node-radius').value = node.radius;
-        document.getElementById('edit-node-volume').value = node.volume;
-        document.getElementById('edit-node-qr-details').value = node.qrDetails;
-        document.getElementById('edit-node-wifi-name').value = node.wifiName;
-        document.getElementById('edit-node-password').value = node.password;
-        document.getElementById('edit-node-mode').value = node.mode;
-
-        
-        document.getElementById('edit-node-modal').style.display = 'block';
-    }
-
-    async function updateNode() {
-        const name = document.getElementById('edit-node-name').value;
-        const location = document.getElementById('edit-node-location').value;
-        const channelId = document.getElementById('edit-node-channel-id').value;
-        const writeApiKey = document.getElementById('edit-node-api-key').value;
-        const readApiKey = document.getElementById('edit-node-read-api-key').value;
-        const graphLink = document.getElementById('edit-node-graph-link').value;
-        const length = document.getElementById('edit-node-length').value;
-        const breadth = document.getElementById('edit-node-breadth').value;
-        const depth = document.getElementById('edit-node-depth').value;
-        const volume = document.getElementById('edit-node-volume').value;
-        const qrDetails = document.getElementById('edit-node-qrDetails').value;
-        const wifiName = document.getElementById('edit-node-wifiName').value;
-        const password = document.getElementById('edit-node-password').value;
-        const mode = document.getElementById('edit-node-mode').value;
-        
-        if (!name || !location || !channelId || !writeApiKey || !readApiKey || !graphLink) {
-            alert('Please fill in all required fields.');
-            return;
-        }
-
-        const { lastReading, lastValue } = await fetchLastReading(channelId, readApiKey);
-        if (!lastReading) {
-            alert('Could not fetch the last reading. Please check the channel ID and API keys.');
-            return;
-        }
-
-        const now = new Date();
-        const status = (now - lastReading) / (1000 * 60 * 60) > 24 ? 'Inactive' : 'Active';
-
-        nodes[editIndex] = {
-            name, location, status, lastReading, lastValue, graphLink,
-            channelId, writeApiKey, readApiKey,
-            length: '', breadth: '', depth: '', radius: '', volume: '',
-            qretails: '', wifiName: '', password: '', mode: ''
-        };
-        saveToLocalStorage();
-        closeModal();
-        renderNodes();
-    }
-
-    function openDetailsModal(event) {
-        const nodeIndex = event.target.getAttribute('data-index');
-        const node = nodes[nodeIndex];
-
-        document.getElementById('details-name').innerText = node.name;
-        document.getElementById('details-location').innerText = node.location;
-        document.getElementById('details-status').innerText = node.status;
-        document.getElementById('details-last-reading').innerText = new Date(node.lastReading).toLocaleString();
-        document.getElementById('details-last-value').innerText = node.lastValue;
-        document.getElementById('details-channel-id').innerText = node.channelId;
-        document.getElementById('details-write-api-key').innerText = node.writeApiKey;
-        document.getElementById('details-read-api-key').innerText = node.readApiKey;
-        document.getElementById('details-graph-link').href = node.graphLink;
-
-        // Optional fields
-        document.getElementById('details-length').innerText = node.length || 'N/A';
-        document.getElementById('details-breadth').innerText = node.breadth || 'N/A';
-        document.getElementById('details-depth').innerText = node.depth || 'N/A';
-        document.getElementById('details-radius').innerText = node.radius || 'N/A';
-        document.getElementById('details-volume').innerText = node.volume || 'N/A';
-        document.getElementById('details-qr-details').innerText = node.qrDetails || 'N/A';
-        document.getElementById('details-wifi-name').innerText = node.wifiName || 'N/A';
-        document.getElementById('details-password').innerText = node.password || 'N/A';
-        document.getElementById('details-mode').innerText = node.mode || 'N/A';
-
-        document.getElementById('details-graph-frame').src = node.graphLink;
-
-        document.getElementById('view-details-modal').style.display = 'block';
-    }
-
-    document.getElementById('add-node-button').addEventListener('click', openModal);
-    document.querySelectorAll('.close').forEach(button => button.addEventListener('click', closeModal));
-    document.getElementById('save-node-button').addEventListener('click', saveNode);
-    document.getElementById('update-node-button').addEventListener('click', updateNode);
-
-    window.addEventListener('click', function(event) {
-        if (event.target === document.getElementById('add-node-modal') || event.target === document.getElementById('edit-node-modal') || event.target === document.getElementById('view-details-modal')) {
-            closeModal();
-        }
-    });
-
-    renderNodes();
-});
