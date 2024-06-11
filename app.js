@@ -120,10 +120,7 @@ document.addEventListener('DOMContentLoaded', function () {
         const status = (now - lastReading) / (1000 * 60 * 60) > 24 ? 'Inactive' : 'Active';
 
         nodes.push({
-            name, location, status, lastReading, lastValue, graphLink,
-            channelId, writeApiKey, readApiKey,
-            length: '', breadth: '', depth: '', radius: '', volume: '',
-            qrDetails: '', wifiName: '', password: '', mode: ''
+            name, location, status, lastReading, lastValue, graphLink,channelId, writeApiKey, readApiKey,length, breadth, depth, radius, volume,qrDetails, wifiName, password, mode
         });
         saveToLocalStorage();
         closeModal();
